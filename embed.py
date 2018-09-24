@@ -37,11 +37,13 @@ def ranking(types, model, distfn):
             _labels[o] = 1
         ap_scores.append(average_precision_score(_labels, -_dists))
         for o in s_types:
+            o = o.item()
             d = _dists_masked.copy()
             d[o] = _dists[o]
             r = np.argsort(d)
             _ranks.append(np.where(r == o)[0][0] + 1)
         ranks += _ranks
+    print (np.mean(ranks), np.mean(ap_scores))
     return np.mean(ranks), np.mean(ap_scores)
 
 
@@ -120,7 +122,7 @@ if __name__ == '__main__':
         log_level = logging.INFO
     log = logging.getLogger('poincare-nips17')
     logging.basicConfig(level=log_level, format='%(message)s', stream=sys.stdout)
-    idx, objects = slurp(opt.dset)
+    idx, objects = slurp(opt.dset, symmetrize=True)
 
     # create adjacency list for evaluation
     adjacency = ddict(set)
@@ -168,6 +170,7 @@ if __name__ == '__main__':
     # if nproc == 0, run single threaded, otherwise run Hogwild
     if opt.nproc == 0:
         train.train(model, data, optimizer, opt, log, 0)
+        ranking(adjacency, model, distfn)
     else:
         queue = mp.Manager().Queue()
         model.share_memory()
