@@ -10,5 +10,4 @@
 module purge; module load bluebear
 module load apps/python3/3.5.2
 
-
 python remove_edges.py

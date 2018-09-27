@@ -14,33 +14,6 @@ import gc
 _lr_multiplier = 0.01
 
 
-# def ranking(types, model, distfn):
-#     lt = th.from_numpy(model.embedding())
-#     embedding = Variable(lt, volatile=True)
-#     ranks = []
-#     ap_scores = []
-#     for s, s_types in types.items():
-#         s_e = Variable(lt[s].expand_as(embedding), volatile=True)
-#         _dists = model.dist()(s_e, embedding).data.cpu().numpy().flatten()
-#         _dists[s] = 1e+12
-#         _labels = np.zeros(embedding.size(0))
-#         _dists_masked = _dists.copy()
-#         _ranks = []
-#         for o in s_types:
-#             _dists_masked[o] = np.Inf
-#             _labels[o] = 1
-#         ap_scores.append(average_precision_score(_labels, -_dists))
-#         for o in s_types:
-#             o = o.item()
-#             d = _dists_masked.copy()
-#             d[o] = _dists[o]
-#             r = np.argsort(d)
-#             _ranks.append(np.where(r == o)[0][0] + 1)
-#         ranks += _ranks
-#     # print (np.mean(ranks), np.mean(ap_scores))
-#     return np.mean(ranks), np.mean(ap_scores)
-
-
 def train_mp(model, data, optimizer, opt, log, rank, queue):
     try:
         train(model, data, optimizer, opt, log, rank, queue)
@@ -96,4 +69,4 @@ def train(model, data, optimizer, opt, log, rank=1, queue=None):
         gc.collect()
         print (f"done epoch {epoch} loss: {loss.data.item()}")
         # mean_rank, mAP = ranking(types, model, distfn)
-        np.savetxt(X=model.lt.weight.detach().numpy(), fname="cora_ml.embedding", delimiter=",")
+        # np.savetxt(X=model.lt.weight.detach().numpy(), fname="cora_ml.embedding", delimiter=",")

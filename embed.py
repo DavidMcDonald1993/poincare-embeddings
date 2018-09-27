@@ -5,6 +5,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 #
+import os
 import torch as th
 import numpy as np
 import logging
@@ -97,6 +98,15 @@ def control(queue, log, types, data, fout, distfn, nepochs, processes):
             )
             break
 
+def parse_filenames(opts):
+    dataset = opts.dset
+    seed = opts.seed
+    training_edgelist = os.path.join("training_edgelist", dataset, "seed={}".format(seed), "training_edges.edgelist")
+    embedding_dir = os.path.join("embeddings", dataset, "seed={}".format(seed), )
+    if not os.path.exists(embedding_dir):
+        os.makedirs(embedding_dir)
+    embedding_file = os.path.join(embedding_dir, "embedding.csv")
+    return training_edgelist, embedding_file
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train Poincare Embeddings')
@@ -109,11 +119,14 @@ if __name__ == '__main__':
     parser.add_argument('-batchsize', help='Batchsize', type=int, default=50)
     parser.add_argument('-negs', help='Number of negatives', type=int, default=20)
     parser.add_argument('-nproc', help='Number of processes', type=int, default=5)
+    parser.add_argument('-seed', help='Random seed.', type=int, default=0)
     parser.add_argument('-ndproc', help='Number of data loading processes', type=int, default=2)
     parser.add_argument('-eval_each', help='Run evaluation each n-th epoch', type=int, default=10)
     parser.add_argument('-burnin', help='Duration of burn in', type=int, default=20)
     parser.add_argument('-debug', help='Print debug output', action='store_true', default=False)
     opt = parser.parse_args()
+
+    training_edgelist, embedding_file = parse_filenames(opt)
 
     th.set_default_tensor_type('torch.FloatTensor')
     if opt.debug:
@@ -122,7 +135,7 @@ if __name__ == '__main__':
         log_level = logging.INFO
     log = logging.getLogger('poincare-nips17')
     logging.basicConfig(level=log_level, format='%(message)s', stream=sys.stdout)
-    idx, objects = slurp(opt.dset, symmetrize=True)
+    idx, objects = slurp(training_edgelist, symmetrize=True, fparse=parse_space)
 
     # create adjacency list for evaluation
     adjacency = ddict(set)
@@ -189,3 +202,6 @@ if __name__ == '__main__':
         )
         ctrl.start()
         ctrl.join()
+
+    print("training complete --- saving embedding to {}".format(embedding_file))
+    np.savetxt(X=model.lt.weight.detach().numpy(), fname=embedding_file, delimiter=",")

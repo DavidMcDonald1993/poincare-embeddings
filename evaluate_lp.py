@@ -48,6 +48,7 @@ def main():
 
 	print (dists)
 
+	raise NotImplementedError
 
 	pass
 
