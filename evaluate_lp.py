@@ -1,3 +1,7 @@
+import os
+os.environ["PYTHON_EGG_CACHE"] = "/rds/projects/2018/hesz01/poincare-embeddings/python-eggs"
+
+
 import numpy as np
 
 import argparse

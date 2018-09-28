@@ -6,7 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 #
 import os
-os.environ["PYTHON_EGG_CACHE"] = "/rds/projects/2018/hesz01/attributed_hyperbolic/python-eggs"
+os.environ["PYTHON_EGG_CACHE"] = "/rds/projects/2018/hesz01/poincare-embeddings/python-eggs"
 import torch as th
 import numpy as np
 import logging
