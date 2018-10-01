@@ -8,6 +8,7 @@
 #SBATCH --mem=32G
 #SBATCH --array 1-1
 
+DATA_DIR=/rds/projects/2018/hesz01/data
 
 ARR=(-dim={10,20}" "-dset=cora_ml" "-seed={0..100})
 
