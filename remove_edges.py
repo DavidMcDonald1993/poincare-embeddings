@@ -7,7 +7,7 @@ import networkx as nx
 
 import argparse
 
-from data_utils import load_g2g_datasets
+from data_utils import load_g2g_datasets, load_collaboration_network
 
 def write_edgelist_to_file(edgelist, file):
 	with open(file, "w+") as f:
@@ -60,14 +60,6 @@ def main():
 	dataset = args.dataset
 	seed = args.seed
 
-	# for dataset in ["cora_ml", "cora", "pubmed", "citeseer"]:
-
-	# 	for seed in range(100):
-
-	topology_graph, features, labels, label_info = load_g2g_datasets(dataset, args)
-	edges = topology_graph.edges()
-	non_edges = list(nx.non_edges(topology_graph))
-
 	edgelist_dir = os.path.join("training_edgelists", dataset, "seed={}".format(seed), )
 	removed_edges_dir = os.path.join("removed_edges", dataset, "seed={}".format(seed))
 
@@ -76,15 +68,36 @@ def main():
 	if not os.path.exists(removed_edges_dir):
 		os.makedirs(removed_edges_dir)
 
+	training_edgelist_fn = os.path.join(edgelist_dir, "training_edges.edgelist")
+	val_edgelist_fn = os.path.join(removed_edges_dir, "val_edges.edgelist")
+	val_non_edgelist_fn = os.path.join(removed_edges_dir, "val_non_edges.edgelist")
+	test_edgelist_fn = os.path.join(removed_edges_dir, "test_edges.edgelist")
+	test_non_edgelist_fn = os.path.join(removed_edges_dir, "test_non_edges.edgelist")
+
+	if os.path.exists(training_edgelist_fn):
+		print ("{} already exists -- terminating".format(training_edgelist_fn))
+		return
+
+
+	if dataset in ["cora", "cora_ml", "pubmed", "citeseer"]:
+		topology_graph, features, labels, label_info = load_g2g_datasets(dataset, args)
+	elif dataset in ["AstroPh", "CondMat", "GrQc", "HepPh"]:
+		topology_graph, features, labels, label_info = load_collaboration_network(args)
+
+
+	edges = topology_graph.edges()
+	non_edges = list(nx.non_edges(topology_graph))
+
+
 	train_edges, (val_edges, val_non_edges), (test_edges, test_non_edges) = split_edges(edges, non_edges, seed)
 
 	topology_graph.remove_edges_from(val_edges + test_edges)
 
-	write_edgelist_to_file(topology_graph.edges(), os.path.join(edgelist_dir, "training_edges.edgelist"))
-	write_edgelist_to_file(val_edges, os.path.join(removed_edges_dir, "val_edges.edgelist"))
-	write_edgelist_to_file(val_non_edges, os.path.join(removed_edges_dir, "val_non_edges.edgelist"))
-	write_edgelist_to_file(test_edges, os.path.join(removed_edges_dir, "test_edges.edgelist"))
-	write_edgelist_to_file(test_non_edges, os.path.join(removed_edges_dir, "test_non_edges.edgelist"))
+	write_edgelist_to_file(train_edges, training_edgelist_fn)
+	write_edgelist_to_file(val_edges, val_edgelist_fn)
+	write_edgelist_to_file(val_non_edges, val_non_edgelist_fn)
+	write_edgelist_to_file(test_edges, test_edgelist_fn)
+	write_edgelist_to_file(test_non_edges, test_edgelist_fn)
 
 
 
