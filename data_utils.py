@@ -298,3 +298,19 @@ def load_wordnet(args):
     label_info = None
     
     return topology_graph, features, labels, label_info
+
+def load_collaboration_network(args):
+	'''
+	'''
+	dataset_str = args.dataset
+	assert dataset_str in ["AstroPh", "CondMat", "GrQc", "HepPh"], "dataset string is not valid"
+
+	topology_graph = nx.read_edgelist(os.path.join(args.data_directory, "collaboration_networks/ca-{}.txt.gz".format(dataset_str)))
+	topology_graph = nx.convert_node_labels_to_integers(topology_graph, label_attribute="original_name")
+	nx.set_edge_attributes(topology_graph, name="weight", values=1)
+
+	features = None
+	labels = None
+	label_info = None
+	
+	return topology_graph, features, labels, label_info
