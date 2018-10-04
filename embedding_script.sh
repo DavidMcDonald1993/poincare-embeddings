@@ -13,8 +13,9 @@ DATA_DIR=/rds/projects/2018/hesz01/data
 ARR=(-dim={10,20}" "-dset=cora_ml" "-seed={0..100})
 
 module purge; module load bluebear
-module load Python/3.6.3-iomkl-2018a
 module load bear-apps/2018a
+module load Python/3.6.3-iomkl-2018a
+module load apps/scikit-learn/0.19.0-python-3.5.2
 module load PyTorch/0.4.0-foss-2018a-Python-3.6.3-CUDA-9.0.176
 
 echo "beggining "${ARR[${SLURM_ARRAY_TASK_ID}]}
