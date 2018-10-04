@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #SBATCH --job-name=embedding
-#SBATCH --output=removeEdges_%A_%a.out
-#SBATCH --error=removeEdges_%A_%a.err
+#SBATCH --output=embedding_%A_%a.out
+#SBATCH --error=embedding_%A_%a.err
 #SBATCH --time=3-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem=32G
@@ -17,7 +17,7 @@ module purge; module load bluebear
 module load bear-apps/2018a
 module load PyTorch/0.4.0-foss-2018a-Python-3.6.3-CUDA-9.0.176
 
-
+echo "beggining "${ARR[${SLURM_ARRAY_TASK_ID}]}
 python embed.py \
 		${ARR[${SLURM_ARRAY_TASK_ID}]} \
 		-lr 0.3 \
@@ -28,4 +28,5 @@ python embed.py \
 		-distfn poincare \
 		-fout mammals.pth \
 		-batchsize 10 \
-		-eval_each 1 \
+		-eval_each 1 
+echo "completed "${ARR[${SLURM_ARRAY_TASK_ID}]}
