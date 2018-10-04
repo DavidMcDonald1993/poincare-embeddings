@@ -6,11 +6,12 @@
 #SBATCH --time=3-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem=32G
-#SBATCH --array 0-0
+#SBATCH --array 0-1199
 
 DATA_DIR=/rds/projects/2018/hesz01/data
 
-ARR=(-dim={10,20}" "-dset=cora_ml" "-seed={0..29})
+# ARR=(-dim={10,20}" "-dset=cora_ml" "-seed={0..29})
+ARR=(-dim={5,10,20,50,100}" "-dset={cora_ml,cora,pubmed,citeseer,AstroPh,CondMat,GrQc,HepPh}" "--seed={0..29})
 
 module purge; module load bluebear
 module load bear-apps/2018a
