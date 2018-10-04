@@ -17,3 +17,4 @@ ARR=(--dataset={cora_ml,cora,pubmed,citeseer,AstroPh,CondMat,GrQc,HepPh}" "--see
 
 echo "beginning "${ARR[${SLURM_ARRAY_TASK_ID}]}
 python remove_edges.py ${ARR[${SLURM_ARRAY_TASK_ID}]} --data-directory ${DATA_DIR}
+echo "completed "${ARR[${SLURM_ARRAY_TASK_ID}]}

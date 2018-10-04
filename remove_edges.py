@@ -84,12 +84,16 @@ def main():
 	elif dataset in ["AstroPh", "CondMat", "GrQc", "HepPh"]:
 		topology_graph, features, labels, label_info = load_collaboration_network(args)
 
+	print("loaded dataset")
+
 
 	edges = topology_graph.edges()
 	non_edges = list(nx.non_edges(topology_graph))
 
 
 	train_edges, (val_edges, val_non_edges), (test_edges, test_non_edges) = split_edges(edges, non_edges, seed)
+
+	print ("removed edges")
 
 	topology_graph.remove_edges_from(val_edges + test_edges)
 
@@ -99,7 +103,7 @@ def main():
 	write_edgelist_to_file(test_edges, test_edgelist_fn)
 	write_edgelist_to_file(test_non_edges, test_edgelist_fn)
 
-
+	print ("done")
 
 
 if __name__ == "__main__":
