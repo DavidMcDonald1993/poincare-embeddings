@@ -17,36 +17,36 @@ import torch.multiprocessing as mp
 import model, train, rsgd
 from data import slurp, parse_space
 from rsgd import RiemannianSGD
-from sklearn.metrics import average_precision_score
+# from sklearn.metrics import average_precision_score
 import gc
 import sys
 
 
-def ranking(types, model, distfn):
-	lt = th.from_numpy(model.embedding())
-	embedding = Variable(lt, volatile=True)
-	ranks = []
-	ap_scores = []
-	for s, s_types in types.items():
-		s_e = Variable(lt[s].expand_as(embedding), volatile=True)
-		_dists = model.dist()(s_e, embedding).data.cpu().numpy().flatten()
-		_dists[s] = 1e+12
-		_labels = np.zeros(embedding.size(0))
-		_dists_masked = _dists.copy()
-		_ranks = []
-		for o in s_types:
-			_dists_masked[o] = np.Inf
-			_labels[o] = 1
-		ap_scores.append(average_precision_score(_labels, -_dists))
-		for o in s_types:
-			o = o.item()
-			d = _dists_masked.copy()
-			d[o] = _dists[o]
-			r = np.argsort(d)
-			_ranks.append(np.where(r == o)[0][0] + 1)
-		ranks += _ranks
-	print (np.mean(ranks), np.mean(ap_scores))
-	return np.mean(ranks), np.mean(ap_scores)
+# def ranking(types, model, distfn):
+# 	lt = th.from_numpy(model.embedding())
+# 	embedding = Variable(lt, volatile=True)
+# 	ranks = []
+# 	ap_scores = []
+# 	for s, s_types in types.items():
+# 		s_e = Variable(lt[s].expand_as(embedding), volatile=True)
+# 		_dists = model.dist()(s_e, embedding).data.cpu().numpy().flatten()
+# 		_dists[s] = 1e+12
+# 		_labels = np.zeros(embedding.size(0))
+# 		_dists_masked = _dists.copy()
+# 		_ranks = []
+# 		for o in s_types:
+# 			_dists_masked[o] = np.Inf
+# 			_labels[o] = 1
+# 		ap_scores.append(average_precision_score(_labels, -_dists))
+# 		for o in s_types:
+# 			o = o.item()
+# 			d = _dists_masked.copy()
+# 			d[o] = _dists[o]
+# 			r = np.argsort(d)
+# 			_ranks.append(np.where(r == o)[0][0] + 1)
+# 		ranks += _ranks
+# 	print (np.mean(ranks), np.mean(ap_scores))
+# 	return np.mean(ranks), np.mean(ap_scores)
 
 
 def control(queue, log, types, data, fout, distfn, nepochs, processes):
