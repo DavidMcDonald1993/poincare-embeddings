@@ -30,7 +30,6 @@ python embed.py \
 		-burnin 20 \
 		-nproc 0 \
 		-distfn poincare \
-		-fout mammals.pth \
 		-batchsize 10 \
 		-eval_each 1 
 echo "completed "${ARR[${SLURM_ARRAY_TASK_ID}]}
