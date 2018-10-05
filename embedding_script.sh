@@ -11,7 +11,7 @@
 DATA_DIR=/rds/projects/2018/hesz01/data
 
 # ARR=(-dim={10,20}" "-dset=cora_ml" "-seed={0..29})
-ARR=(-dim={5,10,20,50,100}" "-dset={cora_ml,cora,pubmed,citeseer,AstroPh,CondMat,GrQc,HepPh}" "--seed={0..29})
+ARR=(-dim={5,10,20,50,100}" "-dset={cora_ml,cora,pubmed,citeseer,AstroPh,CondMat,GrQc,HepPh}" "-seed={0..29})
 
 module purge; module load bluebear
 module load bear-apps/2018a
