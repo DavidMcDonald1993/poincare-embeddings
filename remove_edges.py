@@ -87,11 +87,12 @@ def main():
 	print("loaded dataset")
 
 
-	edges = topology_graph.edges()
+	edges = list(topology_graph.edges())
 	non_edges = list(nx.non_edges(topology_graph))
 
 
 	train_edges, (val_edges, val_non_edges), (test_edges, test_non_edges) = split_edges(edges, non_edges, seed)
+	train_edges += [(u,u) for u in topology_graph.nodes()]
 
 	print ("removed edges")
 

@@ -147,12 +147,7 @@ class GraphDataset(Dataset):
             self._counts[h] += w
             self._weights[t][h] += w
         self._weights = dict(self._weights)
-        # print (self._weights.keys())
         nents = int(np.array(list(self._weights.keys())).max() + 1)
-        # for i in range(nents):
-        #     assert i in [t.item() for t in list(self._weights.keys())], i
-        #     print (f"done {i}")
-        # raise SystemExit
         assert len(objects) == nents, 'Number of objects do no match'
 
         if unigram_size > 0:
@@ -177,7 +172,6 @@ class SNGraphDataset(GraphDataset):
 
     def __getitem__(self, i):
         t, h, _ = self.idx[i]
-        # t = t.item() 
         negs = set()
         ntries = 0
         nnegs = self.nnegs
@@ -189,9 +183,6 @@ class SNGraphDataset(GraphDataset):
                 n = int(self.unigram_table[n])
             else:
                 n = randint(0, len(self.objects))
-            # print (n)
-            # print (type(t))
-            # print (self._weights[t])
             if n not in self._weights[t.item()]:
                 negs.add(n)
             ntries += 1

@@ -3,12 +3,17 @@ os.environ["PYTHON_EGG_CACHE"] = "/rds/projects/2018/hesz01/poincare-embeddings/
 
 
 import numpy as np
+import networkx as nx
+import pandas as pd
 
 import argparse
 
 from sklearn.metrics import average_precision_score, roc_auc_score
 from sklearn.metrics.pairwise import euclidean_distances
 
+from data_utils import load_g2g_datasets, load_collaboration_network
+import functools
+import fcntl
 
 def convert_edgelist_to_dict(edgelist, undirected=True, self_edges=False):
 	if edgelist is None:
@@ -146,31 +151,35 @@ def evaluate_direction(embedding, directed_edges, non_edges):
 	return ap_score, auc_score
 
 def touch(path):
-    with open(path, 'a'):
-        os.utime(path, None)
+	with open(path, 'a'):
+		os.utime(path, None)
 
 def parse_filenames(opts):
 	dataset = opts.dset
+	dim = opts.dim
 	seed = opts.seed
-	embedding_filename = os.path.join("embeddings", dataset, "seed={}".format(seed),  "embedding.csv")
+	embedding_filename = os.path.join("embeddings", dataset, "dim={}".format(dim), "seed={}".format(seed),  "embedding.csv")
 	removed_edge_dir = os.path.join("removed_edges", dataset, "seed={}".format(seed) )
 	val_edges_filename = os.path.join(removed_edge_dir, "val_edges.edgelist")
 	val_non_edges_filename = os.path.join(removed_edge_dir, "val_non_edges.edgelist")
 	test_edges_filename = os.path.join(removed_edge_dir, "test_edges.edgelist")
 	test_non_edges_filename = os.path.join(removed_edge_dir, "test_non_edges.edgelist")
-	test_results_filename = os.path.join("test_results", dataset, "test_results.csv")
-	test_results_lock_filename = os.path.join("test_results", dataset, "test_results.lock")
+	test_results_dir = os.path.join("test_results", dataset, "dim={}".format(dim))
+	if not os.path.exists(test_results_dir):
+		os.makedirs(test_results_dir)
+	test_results_filename = os.path.join(test_results_dir, "test_results.csv")
+	test_results_lock_filename = os.path.join(test_results_dir, "test_results.lock")
 
 	touch(test_results_lock_filename)
 	
 	return (embedding_filename, val_edges_filename, val_non_edges_filename, 
-		test_edges_filename, test_non_edges_filename, test_results_filename. test_results_lock_filename)
+		test_edges_filename, test_non_edges_filename, test_results_filename, test_results_lock_filename)
 
 def read_edgelist(fn):
 	edges = []
 	with open(fn, "r") as f:
-	    for line in (l.rstrip() for l in f.readlines()):
-	        edge = tuple(int(i) for i in line.split(" "))
+		for line in (l.rstrip() for l in f.readlines()):
+			edge = tuple(int(i) for i in line.split(" "))
 			edges.append(edge)
 	return edges
 
@@ -222,7 +231,25 @@ def main():
 	parser = argparse.ArgumentParser(description='Load Poincare Embeddings and evaluate')
 	parser.add_argument('-dset', help='Dataset to embed', type=str, default="cora_ml")
 	parser.add_argument('-seed', help='Random seed.', type=int, default=0)
+	parser.add_argument('-dim', help='Dimension of embedding.', type=int, default=5)
+
+	parser.add_argument('--directed', action="store_true", help='flag to train on directed graph')
+
+	parser.add_argument('--only-lcc', action="store_true", help='flag to train on only lcc')
+
+	parser.add_argument("--data-directory", dest="data_directory", type=str, default="/data/",
+		help="The directory containing data files (default is '/data/').")
+
 	opt = parser.parse_args()
+
+	dataset = opt.dset
+	if dataset in ["cora", "cora_ml", "pubmed", "citeseer"]:
+		topology_graph, features, labels, label_info = load_g2g_datasets(dataset, opt)
+	elif dataset in ["AstroPh", "CondMat", "GrQc", "HepPh"]:
+		topology_graph, features, labels, label_info = load_collaboration_network(opt)
+
+	non_edges = list(nx.non_edges(topology_graph))
+
 
 	(embedding_filename, val_edges_filename, val_non_edges_filename, 
 		test_edges_filename, test_non_edges_filename,
@@ -230,6 +257,8 @@ def main():
 
 	poincare_embedding = np.genfromtxt(embedding_filename, delimiter=",")
 	dists = poincare_distance(poincare_embedding)
+
+	print (dists)
 
 	val_edges = read_edgelist(val_edges_filename)
 	val_non_edges = read_edgelist(val_non_edges_filename)
@@ -256,6 +285,8 @@ def main():
 	test_results.update({"mean_rank_lp_fb": mean_rank_lp_fb, 
 		"map_lp_fb": map_lp_fb,
 		"mean_roc_lp_fb": mean_roc_lp_fb})
+
+	print ("saving test results to {}".format(test_results_filename))
 
 	threadsafe_save_test_results(test_results_lock_filename, test_results_filename, opt.seed, data=test_results )
 
