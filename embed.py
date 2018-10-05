@@ -186,7 +186,7 @@ if __name__ == '__main__':
 	# if nproc == 0, run single threaded, otherwise run Hogwild
 	if opt.nproc == 0:
 		train.train(model, data, optimizer, opt, log, 0)
-		ranking(adjacency, model, distfn)
+		# ranking(adjacency, model, distfn)
 	else:
 		queue = mp.Manager().Queue()
 		model.share_memory()
