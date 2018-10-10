@@ -18,20 +18,17 @@ import fcntl
 def convert_edgelist_to_dict(edgelist, undirected=True, self_edges=False):
 	if edgelist is None:
 		return None
-	# sorts = [lambda x: sorted(x)]
-	# if undirected:
-	# 	sorts.append(lambda x: sorted(x, reverse=True))
-	# edges = (sort(edge) for edge in edgelist for sort in sorts)
-	edges = edgelist
+	if undirected:
+		edgelist += [(v, u) for u, v in edgelist]
 	edge_dict = {}
-	for u, v in edges:
+	for u, v in edgelist:
 		if self_edges:
 			default = set(u)
 		else:
 			default = set()
 		edge_dict.setdefault(u, default).add(v)
-		if undirected:
-			edge_dict.setdefault(v, default).add(u)
+		# if undirected:
+		# 	edge_dict.setdefault(v, default).add(u)
 
 	# for u, v in edgelist:
 	# 	assert v in edge_dict[u]
