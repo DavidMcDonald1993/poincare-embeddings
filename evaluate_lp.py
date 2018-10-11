@@ -211,11 +211,9 @@ def threadsafe_fn(lock_filename, fn, *args, **kwargs ):
 
 def save_test_results(filename, seed, data, ):
 	d = pd.DataFrame(index=[seed], data=data)
-	# try:
 	if os.path.exists(filename):
 		test_df = pd.read_csv(filename, sep=",", index_col=0)
 		test_df = d.combine_first(test_df)
-	# except EmptyDataError:
 	else:
 		test_df = d
 	test_df.to_csv(filename, sep=",")
