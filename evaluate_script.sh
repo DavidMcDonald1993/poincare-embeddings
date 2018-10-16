@@ -12,8 +12,9 @@ DATA_DIR=/rds/projects/2018/hesz01/data
 
 module purge; module load bluebear
 module load bear-apps/2018a
+module load Python/3.6.3-iomkl-2018a
 # module load apps/python3/3.5.2
-module load PyTorch/0.4.0-foss-2018a-Python-3.6.3-CUDA-9.0.176
+# module load PyTorch/0.4.0-foss-2018a-Python-3.6.3-CUDA-9.0.176
 
 
 ARR=(-dim={5,10,20,50,100}" "-dset={cora_ml,cora,pubmed,citeseer,AstroPh,CondMat,GrQc,HepPh}" "-seed={0..29})
