@@ -102,7 +102,7 @@ def main():
 	write_edgelist_to_file(val_edges, val_edgelist_fn)
 	write_edgelist_to_file(val_non_edges, val_non_edgelist_fn)
 	write_edgelist_to_file(test_edges, test_edgelist_fn)
-	write_edgelist_to_file(test_non_edges, test_edgelist_fn)
+	write_edgelist_to_file(test_non_edges, test_non_edgelist_fn)
 
 	print ("done")
 
