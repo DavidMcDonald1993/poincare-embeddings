@@ -9,7 +9,7 @@
 #SBATCH --array 0-119
 
 # DATA_DIR=/rds/projects/2018/hesz01/data
-DATA_DIR="data"
+DATA_DIR="/rds/homes/d/dxm237/data"
 
 module purge; module load bluebear
 module load apps/python3/3.5.2
