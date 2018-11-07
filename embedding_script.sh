@@ -5,13 +5,13 @@
 #SBATCH --error=embedding_%A_%a.err
 #SBATCH --time=3-00:00:00
 #SBATCH --ntasks=1
-#SBATCH --mem=32G
-#SBATCH --array 0-1199
+#SBATCH --mem=64G
+#SBATCH --array 0-479
 
 DATA_DIR=/rds/projects/2018/hesz01/data
 
 # ARR=(-dim={10,20}" "-dset=cora_ml" "-seed={0..29})
-ARR=(-dim={5,10,20,50,100}" "-dset={cora_ml,cora,pubmed,citeseer,AstroPh,CondMat,GrQc,HepPh}" "-seed={0..29})
+ARR=(-dim={5,10,25,50}" "-dset={cora_ml,cora,pubmed,citeseer}" "-seed={0..29})
 
 module purge; module load bluebear
 module load bear-apps/2018a
