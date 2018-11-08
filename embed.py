@@ -102,8 +102,9 @@ def control(queue, log, types, data, fout, distfn, nepochs, processes):
 def parse_filenames(opts):
 	dataset = opts.dset
 	seed = opts.seed
-	training_edgelist = os.path.join("training_edgelists", dataset, "seed={}".format(seed), "training_edges.edgelist")
-	embedding_dir = os.path.join("embeddings", dataset, "dim={}".format(opts.dim), "seed={}".format(seed), )
+	experiment = opts.exp
+	training_edgelist = os.path.join("training_edgelists", dataset, "seed={}".format(seed), experiment, "training_edges.edgelist")
+	embedding_dir = os.path.join("embeddings", dataset, "dim={}".format(opts.dim), "seed={}".format(seed), experiment)
 	if not os.path.exists(embedding_dir):
 		os.makedirs(embedding_dir)
 	embedding_file = os.path.join(embedding_dir, "embedding.csv")
@@ -113,6 +114,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Train Poincare Embeddings')
 	parser.add_argument('-dim', help='Embedding dimension', type=int)
 	parser.add_argument('-dset', help='Dataset to embed', type=str, default="cora_ml")
+	parser.add_argument('-exp', help='Experiment to perform', type=str, )
 	parser.add_argument('-fout', help='Filename where to store model', type=str)
 	parser.add_argument('-distfn', help='Distance function', type=str)
 	parser.add_argument('-lr', help='Learning rate', type=float)
@@ -126,6 +128,8 @@ if __name__ == '__main__':
 	parser.add_argument('-burnin', help='Duration of burn in', type=int, default=20)
 	parser.add_argument('-debug', help='Print debug output', action='store_true', default=False)
 	opt = parser.parse_args()
+
+	assert opt.exp in ["eval_lp", "eval_class_pred"]
 
 	training_edgelist, embedding_file = parse_filenames(opt)
 

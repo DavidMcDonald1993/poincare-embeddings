@@ -60,23 +60,25 @@ def main():
 	dataset = args.dataset
 	seed = args.seed
 
-	edgelist_dir = os.path.join("training_edgelists", dataset, "seed={}".format(seed), )
-	removed_edges_dir = os.path.join("removed_edges", dataset, "seed={}".format(seed))
+	complete_edgelist_dir = os.path.join("training_edgelists", dataset, "seed={}".format(seed), "eval_class_pred")
+	training_edgelist_dir = os.path.join("training_edgelists", dataset, "seed={}".format(seed), "eval_lp")
+	removed_edges_dir = os.path.join("removed_edges", dataset, "seed={}".format(seed), "eval_lp")
 
-	if not os.path.exists(edgelist_dir):
-		os.makedirs(edgelist_dir)
+	if not os.path.exists(complete_edgelist_dir):
+		os.makedirs(complete_edgelist_dir)
+	if not os.path.exists(training_edgelist_dir):
+		os.makedirs(training_edgelist_dir)
 	if not os.path.exists(removed_edges_dir):
 		os.makedirs(removed_edges_dir)
 
-	training_edgelist_fn = os.path.join(edgelist_dir, "training_edges.edgelist")
+	complete_edgelist_fn = os.path.join(complete_edgelist_dir, "training_edges.edgelist")
+	complete_non_edgelist_fn = os.path.join(complete_edgelist_dir, "complete_non_edges.edgelist")
+
+	training_edgelist_fn = os.path.join(training_edgelist_dir, "training_edges.edgelist")
 	val_edgelist_fn = os.path.join(removed_edges_dir, "val_edges.edgelist")
 	val_non_edgelist_fn = os.path.join(removed_edges_dir, "val_non_edges.edgelist")
 	test_edgelist_fn = os.path.join(removed_edges_dir, "test_edges.edgelist")
 	test_non_edgelist_fn = os.path.join(removed_edges_dir, "test_non_edges.edgelist")
-
-	if os.path.exists(training_edgelist_fn):
-		print ("{} already exists -- terminating".format(training_edgelist_fn))
-		return
 
 
 	if dataset in ["cora", "cora_ml", "pubmed", "citeseer"]:
@@ -90,6 +92,8 @@ def main():
 	edges = list(topology_graph.edges())
 	non_edges = list(nx.non_edges(topology_graph))
 
+	write_edgelist_to_file(edges, complete_edgelist_fn)
+	write_edgelist_to_file(non_edges, complete_non_edgelist_fn)
 
 	train_edges, (val_edges, val_non_edges), (test_edges, test_non_edges) = split_edges(edges, non_edges, seed)
 	train_edges += [(u,u) for u in topology_graph.nodes()]
