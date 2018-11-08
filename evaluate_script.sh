@@ -6,7 +6,7 @@
 #SBATCH --time=3-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem=64G
-#SBATCH --array 0-239
+#SBATCH --array 0-959
 
 # DATA_DIR=/rds/projects/2018/hesz01/data
 DATA_DIR="/rds/homes/d/dxm237/data"
@@ -18,7 +18,7 @@ module load apps/python3/3.5.2
 # module load PyTorch/0.4.0-foss-2018a-Python-3.6.3-CUDA-9.0.176
 
 
-ARR=(-dim={5,10,25,50}" "-dset=cora_ml" "-seed={0..29}" "-exp={eval_lp,eval_class_pred})
+ARR=(-dim={5,10,25,50}" "-dset={cora_ml,cora,pubmed,citeseer}" "-seed={0..29}" "-exp={eval_lp,eval_class_pred})
 
 echo "beginning "${ARR[${SLURM_ARRAY_TASK_ID}]}
 python evaluate.py ${ARR[${SLURM_ARRAY_TASK_ID}]} --data-directory ${DATA_DIR}
