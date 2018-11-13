@@ -37,7 +37,7 @@ def convert_edgelist_to_dict(edgelist, undirected=True, self_edges=False):
 
 def poincare_distance(X):
 	norm_X_sq = 1 - np.linalg.norm(X, keepdims=True, axis=-1) ** 2
-	norm_X_sq = np.minimum(norm_X_sq, np.nextafter(1,0, ))
+	norm_X_sq = np.clip(norm_X_sq, 1e-7, np.nextafter(1,0, )) # clip to avoid divide by zero
 	uu = euclidean_distances(X) ** 2
 	dd = norm_X_sq * norm_X_sq.T
 	return np.arccosh(1 + 2 * uu / dd)
@@ -271,7 +271,6 @@ def main():
 
 	non_edges = list(nx.non_edges(topology_graph))
 
-
 	embedding_filename, filenames, test_results_filename, test_results_lock_filename = parse_filenames(opt)
 
 	poincare_embedding = np.genfromtxt(embedding_filename, delimiter=",")
@@ -291,8 +290,8 @@ def main():
 		test_edges = read_edgelist(test_edges_filename)
 		test_non_edges = read_edgelist(test_non_edges_filename)
 
-		test_edge_dict = convert_edgelist_to_dict(test_edges)
-		non_edge_dict = convert_edgelist_to_dict(non_edges)
+		# test_edge_dict = convert_edgelist_to_dict(test_edges)
+		# non_edge_dict = convert_edgelist_to_dict(non_edges)
 
 		(mean_rank_lp, map_lp, 
 		mean_roc_lp) = evaluate_rank_and_MAP(dists, 
@@ -331,7 +330,6 @@ def main():
 			test_results.update({"{:.2f}_micro".format(label_percentage): f1_micro})
 			test_results.update({"{:.2f}_macro".format(label_percentage): f1_macro})
 		test_results.update({"micro_sum" : np.sum(f1_micros)})
-
 
 	print ("saving test results to {}".format(test_results_filename))
 	threadsafe_save_test_results(test_results_lock_filename, test_results_filename, opt.seed, data=test_results )
