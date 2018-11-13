@@ -328,8 +328,8 @@ def main():
 		label_percentages, f1_micros, f1_macros = evaluate_classification(klein_embedding, labels, )
 
 		for label_percentage, f1_micro, f1_macro in zip(label_percentages, f1_micros, f1_macros):
-			test_results.update({"{}_micro".format(label_percentage): f1_micro})
-			test_results.update({"{}_macro".format(label_percentage): f1_macro})
+			test_results.update({"{:.2f}_micro".format(label_percentage): f1_micro})
+			test_results.update({"{:.2f}_macro".format(label_percentage): f1_macro})
 		test_results.update({"micro_sum" : np.sum(f1_micros)})
 
 

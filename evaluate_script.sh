@@ -12,7 +12,7 @@
 DATA_DIR="/rds/homes/d/dxm237/data"
 
 module purge; module load bluebear
-module load bear-apps/2018a
+# module load bear-apps/2018a
 # module load Python/3.6.3-iomkl-2018a
 module load apps/python3/3.5.2
 # module load PyTorch/0.4.0-foss-2018a-Python-3.6.3-CUDA-9.0.176
