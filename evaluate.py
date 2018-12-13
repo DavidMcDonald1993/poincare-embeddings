@@ -36,7 +36,8 @@ def convert_edgelist_to_dict(edgelist, undirected=True, self_edges=False):
 
 
 def poincare_distance(X):
-	norm_X_sq = 1 - np.linalg.norm(X, keepdims=True, axis=-1) ** 2
+	assert (np.linalg.norm(X, axis=-1) < 1).all()
+	norm_X_sq = 1. - np.linalg.norm(X, keepdims=True, axis=-1) ** 2
 	norm_X_sq = np.clip(norm_X_sq, 1e-7, np.nextafter(1,0, )) # clip to avoid divide by zero
 	uu = euclidean_distances(X) ** 2
 	dd = norm_X_sq * norm_X_sq.T
@@ -55,19 +56,17 @@ def evaluate_rank_and_MAP(dists, edgelist, non_edgelist):
 	edge_dists = dists[edgelist[:,0], edgelist[:,1]]
 	non_edge_dists = dists[non_edgelist[:,0], non_edgelist[:,1]]
 
-
 	labels = np.append(np.ones_like(edge_dists), np.zeros_like(non_edge_dists))
 	scores = -np.append(edge_dists, non_edge_dists)
 	ap_score = average_precision_score(labels, scores) # macro by default
 	auc_score = roc_auc_score(labels, scores)
-
 
 	idx = non_edge_dists.argsort()
 	ranks = np.searchsorted(non_edge_dists, edge_dists, sorter=idx) + 1
 	ranks = ranks.mean()
 
 	print ("MEAN RANK =", ranks, "AP =", ap_score, 
-		"ROC AUC =", auc_score)
+		"AUROC =", auc_score)
 
 	return ranks, ap_score, auc_score
 
@@ -96,7 +95,7 @@ def evaluate_rank_and_MAP(dists, edgelist, non_edgelist):
 # 	return np.mean(ranks), np.mean(ap_scores), np.mean(roc_auc_scores)
 
 def poincare_to_klein(poincare_embedding):
-	return 2 * poincare_embedding / (1 + np.sum(np.square(poincare_embedding), axis=-1, keepdims=True))
+	return 2 * poincare_embedding / (1. + np.sum(np.square(poincare_embedding), axis=-1, keepdims=True))
 
 def evaluate_classification(klein_embedding, labels, 
 	label_percentages=np.arange(0.02, 0.11, 0.01), n_repeats=10):
@@ -117,10 +116,6 @@ def evaluate_classification(klein_embedding, labels,
 
 			sss = StratifiedShuffleSplit(n_splits=1, test_size=1-label_percentage, random_state=seed)
 			split_train, split_test = next(sss.split(klein_embedding, labels))
-			# num_labels = int(max(num_nodes * label_percentage, len(classes)))
-			# idx = np.random.permutation(num_nodes)
-			# if len(labels.shape) > 1:
-			# 	model =  OneVsRestClassifier(LogisticRegression(random_state=0))
 			model.fit(klein_embedding[split_train], labels[split_train])
 			predictions = model.predict(klein_embedding[split_test])
 			f1_micro = f1_score(labels[split_test], predictions, average="micro")
@@ -129,7 +124,6 @@ def evaluate_classification(klein_embedding, labels,
 			f1_macros[seed,i] = f1_macro
 
 	return label_percentages, f1_micros.mean(axis=0), f1_macros.mean(axis=0)
-
 
 def evaluate_direction(embedding, directed_edges, non_edges):
 
@@ -151,7 +145,7 @@ def evaluate_direction(embedding, directed_edges, non_edges):
 	auc_score = roc_auc_score(labels, scores)
 
 	print ("AP =", ap_score, 
-		"ROC AUC =", auc_score)
+		"AUROC =", auc_score)
 	
 	return ap_score, auc_score
 
@@ -269,7 +263,7 @@ def main():
 	elif dataset in ["AstroPh", "CondMat", "GrQc", "HepPh"]:
 		topology_graph, features, labels, label_info = load_collaboration_network(opt)
 
-	non_edges = list(nx.non_edges(topology_graph))
+	# non_edges = list(nx.non_edges(topology_graph))
 
 	embedding_filename, filenames, test_results_filename, test_results_lock_filename = parse_filenames(opt)
 
@@ -315,7 +309,7 @@ def main():
 		training_non_edges = read_edgelist(complete_non_edgelist_fn)
 
 		(mean_rank_reconstruction, map_reconstruction, 
-		mean_roc_reconstruction) = evaluate_rank_and_MAP(dists, 
+		mean_roc_reconstruction) = evaluate_rank_and_MAP(dists, # evaluate reconstruction on complete dataset
 		training_edges, training_non_edges)
 
 		test_results.update({"mean_rank_reconstruction": mean_rank_reconstruction, 
