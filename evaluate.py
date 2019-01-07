@@ -14,6 +14,7 @@ from sklearn.linear_model import LogisticRegressionCV
 from sklearn.model_selection import StratifiedShuffleSplit
 
 from data_utils import load_g2g_datasets, load_collaboration_network
+from greedy_routing import evaluate_greedy_routing
 import functools
 import fcntl
 
@@ -38,10 +39,10 @@ def convert_edgelist_to_dict(edgelist, undirected=True, self_edges=False):
 def poincare_distance(X):
 	assert (np.linalg.norm(X, axis=-1) < 1).all()
 	norm_X_sq = 1. - np.linalg.norm(X, keepdims=True, axis=-1) ** 2
-	norm_X_sq = np.clip(norm_X_sq, 1e-7, np.nextafter(1,0, )) # clip to avoid divide by zero
+	norm_X_sq = np.clip(norm_X_sq, 1e-15, np.nextafter(1,0, )) # clip to avoid divide by zero
 	uu = euclidean_distances(X) ** 2
 	dd = norm_X_sq * norm_X_sq.T
-	return np.arccosh(1 + 2 * uu / dd)
+	return np.arccosh(1. + 2 * uu / dd)
 
 
 def evaluate_rank_and_MAP(dists, edgelist, non_edgelist):
@@ -246,6 +247,9 @@ def main():
 	parser.add_argument('-dim', help='Dimension of embedding.', type=int, default=5)
 	parser.add_argument('-exp', help='Experiment to perform', type=str, )
 
+	parser.add_argument('--num-routing', dest="num_routing", type=int, default=1000, 
+		help="Number of source-target pairs to evaluate (default is 1000).")
+
 	parser.add_argument('--directed', action="store_true", help='flag to train on directed graph')
 
 	parser.add_argument('--only-lcc', action="store_true", help='flag to train on only lcc')
@@ -324,6 +328,10 @@ def main():
 			test_results.update({"{:.2f}_micro".format(label_percentage): f1_micro})
 			test_results.update({"{:.2f}_macro".format(label_percentage): f1_macro})
 		test_results.update({"micro_sum" : np.sum(f1_micros)})
+
+		# evaluate greedy routing on complete network
+		mean_complete, mean_hop_stretch = evaluate_greedy_routing(topology_graph, dists, opt)
+		test_results.update({"mean_complete_gr": mean_complete, "mean_hop_stretch_gr": mean_hop_stretch})
 
 	print ("saving test results to {}".format(test_results_filename))
 	threadsafe_save_test_results(test_results_lock_filename, test_results_filename, opt.seed, data=test_results )
