@@ -19,12 +19,12 @@ module load PyTorch/0.4.0-foss-2018a-Python-3.6.3-CUDA-9.0.176
 echo "beginning "${ARR[${SLURM_ARRAY_TASK_ID}]}
 python embed.py \
 		${ARR[${SLURM_ARRAY_TASK_ID}]} \
-		-lr 0.3 \
-		-epochs 300 \
+		-lr 1.0 \
+		-epochs 10000 \
 		-negs 10 \
 		-burnin 20 \
 		-nproc 0 \
 		-distfn poincare \
-		-batchsize 10 \
+		-batchsize 1024 \
 		-eval_each 1 
 echo "completed "${ARR[${SLURM_ARRAY_TASK_ID}]}
