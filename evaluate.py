@@ -39,7 +39,7 @@ def convert_edgelist_to_dict(edgelist, undirected=True, self_edges=False):
 def poincare_distance(X):
 	assert (np.linalg.norm(X, axis=-1) < 1).all()
 	norm_X_sq = 1. - np.linalg.norm(X, keepdims=True, axis=-1) ** 2
-	norm_X_sq = np.clip(norm_X_sq, 1e-15, np.nextafter(1,0, )) # clip to avoid divide by zero
+	norm_X_sq = np.clip(norm_X_sq, 1e-15, 1-1e-8) # clip to avoid divide by zero
 	uu = euclidean_distances(X) ** 2
 	dd = norm_X_sq * norm_X_sq.T
 	return np.arccosh(1. + 2 * uu / dd)
@@ -63,7 +63,7 @@ def evaluate_rank_and_MAP(dists, edgelist, non_edgelist):
 	auc_score = roc_auc_score(labels, scores)
 
 	idx = non_edge_dists.argsort()
-	ranks = np.searchsorted(non_edge_dists, edge_dists, sorter=idx) + 1
+	ranks = np.searchsorted(non_edge_dists, edge_dists, sorter=idx) + 1 # +1 to account for 0 indexing
 	ranks = ranks.mean()
 
 	print ("MEAN RANK =", ranks, "AP =", ap_score, 
@@ -170,7 +170,6 @@ def parse_filenames(opts):
 
 	touch(test_results_lock_filename)
 
-
 	if experiment == "eval_lp":
 		removed_edge_dir = os.path.join("removed_edges", dataset, "seed={}".format(seed), "eval_lp")
 		val_edges_filename = os.path.join(removed_edge_dir, "val_edges.edgelist")
@@ -263,9 +262,9 @@ def main():
 
 	dataset = opt.dset
 	if dataset in ["cora", "cora_ml", "pubmed", "citeseer"]:
-		topology_graph, features, labels, label_info = load_g2g_datasets(dataset, opt)
+		topology_graph, features, labels = load_g2g_datasets(dataset, opt)
 	elif dataset in ["AstroPh", "CondMat", "GrQc", "HepPh"]:
-		topology_graph, features, labels, label_info = load_collaboration_network(opt)
+		topology_graph, features, labels = load_collaboration_network(opt)
 
 	# non_edges = list(nx.non_edges(topology_graph))
 
@@ -327,7 +326,7 @@ def main():
 		for label_percentage, f1_micro, f1_macro in zip(label_percentages, f1_micros, f1_macros):
 			test_results.update({"{:.2f}_micro".format(label_percentage): f1_micro})
 			test_results.update({"{:.2f}_macro".format(label_percentage): f1_macro})
-		test_results.update({"micro_sum" : np.sum(f1_micros)})
+		# test_results.update({"micro_sum" : np.sum(f1_micros)})
 
 		# evaluate greedy routing on complete network
 		mean_complete, mean_hop_stretch = evaluate_greedy_routing(topology_graph, dists, opt)
@@ -335,7 +334,6 @@ def main():
 
 	print ("saving test results to {}".format(test_results_filename))
 	threadsafe_save_test_results(test_results_lock_filename, test_results_filename, opt.seed, data=test_results )
-
 
 if __name__ == "__main__":
 	main()

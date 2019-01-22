@@ -20,11 +20,11 @@ echo "beginning "${ARR[${SLURM_ARRAY_TASK_ID}]}
 python embed.py \
 		${ARR[${SLURM_ARRAY_TASK_ID}]} \
 		-lr 1.0 \
-		-epochs 10000 \
-		-negs 10 \
+		-epochs 1500 \
+		-negs 50 \
 		-burnin 20 \
 		-nproc 0 \
 		-distfn poincare \
-		-batchsize 1024 \
-		-eval_each 1 
+		-batchsize 50 \
+		-eval_each 1500 
 echo "completed "${ARR[${SLURM_ARRAY_TASK_ID}]}
