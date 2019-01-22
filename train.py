@@ -67,6 +67,4 @@ def train(model, data, optimizer, opt, log, rank=1, queue=None):
                     '}'
                 )
         gc.collect()
-        print (f"done epoch {epoch} loss: {loss.data.item()}")
-        # mean_rank, mAP = ranking(types, model, distfn)
-        # np.savetxt(X=model.lt.weight.detach().numpy(), fname="cora_ml.embedding", delimiter=",")
+        # print (f"done epoch {epoch} loss: {loss.data.item()}")
