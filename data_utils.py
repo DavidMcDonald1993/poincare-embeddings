@@ -15,26 +15,7 @@ import pickle as pkl
 
 from sklearn.preprocessing import StandardScaler
 
-def load_karate(args):
-
-	_dir = os.path.join(args.data_directory, "karate")
-
-	topology_graph = nx.read_edgelist(os.path.join(_dir, "karate.edg"))
-
-	label_df = pd.read_csv(os.path.join(_dir, "mod-based-clusters.txt"), sep=" ", index_col=0, header=None,)
-	label_df.index = [str(idx) for idx in label_df.index]
-	label_df = label_df.reindex(topology_graph.nodes())
-
-	labels = label_df.iloc[:,0].values
-
-	topology_graph = nx.convert_node_labels_to_integers(topology_graph, label_attribute="original_name")
-	nx.set_edge_attributes(G=topology_graph, name="weight", values=1.)
-
-	features = np.genfromtxt(os.path.join(_dir, "/data/karate/feats.csv"), delimiter=",")
-
-	return topology_graph, features, labels
-
-def load_g2g_datasets(dataset_str, args):
+def load_g2g_datasets(dataset_str, args, scale=True):
 
 	"""Load a graph from a Numpy binary file.
 	Parameters
@@ -94,12 +75,11 @@ def load_g2g_datasets(dataset_str, args):
 	features = X.A
 	labels = z
 
-	if idx_to_class:
-		label_info = graph["idx_to_class"]
-	else: 
-		label_info = None 
+	if scale:
+		scaler = StandardScaler()
+		features = scaler.fit_transform(features)
 
-	return topology_graph, features, labels, label_info
+	return topology_graph, features, labels
 
 def load_labelled_attributed_network(dataset_str, args, scale=False):
 	"""Load data."""
