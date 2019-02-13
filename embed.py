@@ -140,6 +140,8 @@ if __name__ == '__main__':
 	print ("loaded edgelist: {}".format(training_edgelist))
 
 	th.set_default_tensor_type('torch.FloatTensor')
+	# th.set_default_tensor_type('torch.cuda.FloatTensor')
+
 	if opt.debug:
 		log_level = logging.DEBUG
 	else:
@@ -194,7 +196,6 @@ if __name__ == '__main__':
 	# if nproc == 0, run single threaded, otherwise run Hogwild
 	if opt.nproc == 0:
 		train.train(model, data, optimizer, opt, log, 0)
-		# ranking(adjacency, model, distfn)
 	else:
 		queue = mp.Manager().Queue()
 		model.share_memory()
@@ -214,5 +215,5 @@ if __name__ == '__main__':
 		ctrl.start()
 		ctrl.join()
 
-	print("training complete --- saving embedding to {}".format(embedding_file))
+	print("training complete -- saving embedding to {}".format(embedding_file))
 	np.savetxt(X=model.lt.weight.detach().numpy(), fname=embedding_file, delimiter=",")
