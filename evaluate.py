@@ -11,9 +11,11 @@ import argparse
 from sklearn.metrics import average_precision_score, roc_auc_score, f1_score
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.linear_model import LogisticRegressionCV
-from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit
+from sklearn.multiclass import OneVsRestClassifier
 
-from data_utils import load_g2g_datasets, load_collaboration_network
+
+from data_utils import load_g2g_datasets, load_collaboration_network, load_ppi
 from greedy_routing import evaluate_greedy_routing
 import functools
 import fcntl
@@ -42,7 +44,7 @@ def poincare_distance(X):
 	norm_X_sq = np.clip(norm_X_sq, 1e-15, 1-1e-8) # clip to avoid divide by zero
 	uu = euclidean_distances(X) ** 2
 	dd = norm_X_sq * norm_X_sq.T
-	return np.arccosh(1. + 2 * uu / dd)
+	return np.arccosh(1. + 2 * uu / dd + 1e-7)
 
 
 def evaluate_rank_and_MAP(dists, edgelist, non_edgelist):
@@ -98,24 +100,30 @@ def evaluate_rank_and_MAP(dists, edgelist, non_edgelist):
 def poincare_to_klein(poincare_embedding):
 	return 2 * poincare_embedding / (1. + np.sum(np.square(poincare_embedding), axis=-1, keepdims=True))
 
-def evaluate_classification(klein_embedding, labels, 
+def evaluate_classification(klein_embedding, labels,
 	label_percentages=np.arange(0.02, 0.11, 0.01), n_repeats=10):
 
-	assert len(labels.shape) == 1
+	print ("Evaluating node classification")
 
 	num_nodes, dim = klein_embedding.shape
 
 	f1_micros = np.zeros((n_repeats, len(label_percentages)))
 	f1_macros = np.zeros((n_repeats, len(label_percentages)))
-
 	
 	model = LogisticRegressionCV()
+	split = StratifiedShuffleSplit
+
+	if len(labels.shape) > 1: # multilabel classification
+		model = OneVsRestClassifier(model)
+		split = ShuffleSplit
+
+	n = len(klein_embedding)
 
 	for seed in range(n_repeats):
 	
 		for i, label_percentage in enumerate(label_percentages):
 
-			sss = StratifiedShuffleSplit(n_splits=1, test_size=1-label_percentage, random_state=seed)
+			sss = split(n_splits=1, test_size=1-label_percentage, random_state=seed)
 			split_train, split_test = next(sss.split(klein_embedding, labels))
 			model.fit(klein_embedding[split_train], labels[split_train])
 			predictions = model.predict(klein_embedding[split_test])
@@ -123,8 +131,10 @@ def evaluate_classification(klein_embedding, labels,
 			f1_macro = f1_score(labels[split_test], predictions, average="macro")
 			f1_micros[seed,i] = f1_micro
 			f1_macros[seed,i] = f1_macro
+		print ("completed repeat {}".format(seed+1))
 
 	return label_percentages, f1_micros.mean(axis=0), f1_macros.mean(axis=0)
+
 
 def evaluate_direction(embedding, directed_edges, non_edges):
 
@@ -261,10 +271,17 @@ def main():
 	assert opt.exp in ["eval_lp", "eval_class_pred"]
 
 	dataset = opt.dset
+
 	if dataset in ["cora", "cora_ml", "pubmed", "citeseer"]:
-		topology_graph, features, labels = load_g2g_datasets(dataset, opt)
+		load = load_g2g_datasets
 	elif dataset in ["AstroPh", "CondMat", "GrQc", "HepPh"]:
-		topology_graph, features, labels = load_collaboration_network(opt)
+		load = load_collaboration_network
+	elif dataset == "ppi":
+		load = load_ppi
+	else:
+		raise Exception
+
+	graph, features, labels = load(dataset, opt)
 
 	# non_edges = list(nx.non_edges(topology_graph))
 
@@ -329,8 +346,8 @@ def main():
 		# test_results.update({"micro_sum" : np.sum(f1_micros)})
 
 		# evaluate greedy routing on complete network
-		mean_complete, mean_hop_stretch = evaluate_greedy_routing(topology_graph, dists, opt)
-		test_results.update({"mean_complete_gr": mean_complete, "mean_hop_stretch_gr": mean_hop_stretch})
+		# mean_complete, mean_hop_stretch = evaluate_greedy_routing(topology_graph, dists, opt)
+		# test_results.update({"mean_complete_gr": mean_complete, "mean_hop_stretch_gr": mean_hop_stretch})
 
 	print ("saving test results to {}".format(test_results_filename))
 	threadsafe_save_test_results(test_results_lock_filename, test_results_filename, opt.seed, data=test_results )

@@ -71,7 +71,7 @@ def load_g2g_datasets(dataset_str, args, scale=True):
 	else:
 		create_using = nx.Graph() 
 
-	topology_graph = nx.from_scipy_sparse_matrix(A, create_using=create_using)
+	graph = nx.from_scipy_sparse_matrix(A, create_using=create_using)
 	features = X.A
 	labels = z
 
@@ -79,7 +79,7 @@ def load_g2g_datasets(dataset_str, args, scale=True):
 		scaler = StandardScaler()
 		features = scaler.fit_transform(features)
 
-	return topology_graph, features, labels
+	return graph, features, labels
 
 def load_labelled_attributed_network(dataset_str, args, scale=False):
 	"""Load data."""
@@ -136,16 +136,16 @@ def load_labelled_attributed_network(dataset_str, args, scale=False):
 	# train_label_idx = list(range(len(y)))
 	# val_label_idx = list(range(len(y), len(y)+500))
 
-	topology_graph = nx.from_numpy_matrix(adj.toarray())
-	topology_graph = nx.convert_node_labels_to_integers(topology_graph, label_attribute="original_name")
-	nx.set_edge_attributes(G=topology_graph, name="weight", values=1.)
+	graph = nx.from_numpy_matrix(adj.toarray())
+	graph = nx.convert_node_labels_to_integers(graph, label_attribute="original_name")
+	nx.set_edge_attributes(G=graph, name="weight", values=1.)
 
 	if args.only_lcc:
-		topology_graph = max(nx.connected_component_subgraphs(topology_graph), key=len)
-		features = features[topology_graph.nodes()]
-		labels = labels[topology_graph.nodes()]
-		topology_graph = nx.convert_node_labels_to_integers(topology_graph, label_attribute="original_name")
-		nx.set_edge_attributes(G=topology_graph, name="weight", values=1.)
+		graph = max(nx.connected_component_subgraphs(graph), key=len)
+		features = features[graph.nodes()]
+		labels = labels[graph.nodes()]
+		graph = nx.convert_node_labels_to_integers(graph, label_attribute="original_name")
+		nx.set_edge_attributes(G=graph, name="weight", values=1.)
 
 	# node2vec_graph = Graph(nx_G=G, is_directed=False, p=1, q=1)
 	# node2vec_graph.preprocess_transition_probs()
@@ -159,48 +159,42 @@ def load_labelled_attributed_network(dataset_str, args, scale=False):
 
 	# feature_graph = create_feature_graph(features)
 
-	return topology_graph, features, labels
+	return graph, features, labels
 
 def load_tf_interaction(args, normalize=True):
 	_dir = os.path.join(args.data_directory, "tissue_classification")
 	interaction_df = pd.read_csv(os.path.join(_dir, "NIHMS177825-supplement-03-1.csv"), 
 		sep=",", skiprows=1).iloc[1:]
-	topology_graph = nx.from_pandas_dataframe(interaction_df, "Gene 1 Symbol", "Gene 2 Symbol")
+	graph = nx.from_pandas_dataframe(interaction_df, "Gene 1 Symbol", "Gene 2 Symbol")
 
 	features_df = pd.read_csv(os.path.join(_dir, "NIHMS177825-supplement-06-2.csv"), 
         sep=",", skiprows=1, index_col="Symbol", ).iloc[:,2:]
 
 	# remove nodes with no expression data
-	for n in topology_graph.nodes():
+	for n in graph.nodes():
 		if n not in features_df.index:
-			topology_graph.remove_node(n)
+			graph.remove_node(n)
 
 	# sort features by node order
-	features_df = features_df.loc[topology_graph.nodes(),:]
+	features_df = features_df.loc[graph.nodes(),:]
 
 	features = features_df.values
 
 	if normalize:
 		features = StandardScaler().fit_transform(features)
 
-	topology_graph = nx.convert_node_labels_to_integers(topology_graph, label_attribute="original_name")
-	nx.set_edge_attributes(topology_graph, "weight", 1)
+	graph = nx.convert_node_labels_to_integers(graph, label_attribute="original_name")
+	nx.set_edge_attributes(graph, "weight", 1)
 	labels = None
 	label_info = None
 
-	# print (len(topology_graph))
-	# print (features)
+	return graph, features, labels, label_info
 
-	# raise SystemExit
-
-	return topology_graph, features, labels, label_info
-
-
-def load_ppi(args, normalize=True,):
-	prefix = os.path.join(args.data_directory, "/ppi/ppi")
+def load_ppi(dataset, args, scale=True,):
+	prefix = os.path.join(args.data_directory, "ppi/ppi")
 	G_data = json.load(open(prefix + "-G.json"))
-	topology_graph = json_graph.node_link_graph(G_data)
-	if isinstance(topology_graph.nodes()[0], int):
+	graph = json_graph.node_link_graph(G_data)
+	if isinstance(list(graph.nodes())[0], int):
 		conversion = lambda n : int(n)
 	else:
 		conversion = lambda n : n
@@ -223,45 +217,53 @@ def load_ppi(args, normalize=True,):
 	## Remove all nodes that do not have val/test annotations
 	## (necessary because of networkx weirdness with the Reddit data)
 	broken_count = 0
-	for node in topology_graph.nodes():
-		if not 'val' in topology_graph.node[node] or not 'test' in topology_graph.node[node]:
-			topology_graph.remove_node(node)
+	for node in graph.nodes():
+		if not 'val' in graph.node[node] or not 'test' in graph.node[node]:
+			graph.remove_node(node)
 			broken_count += 1
 	print("Removed {:d} nodes that lacked proper annotations due to networkx versioning issues".format(broken_count))
 
 	## Make sure the graph has edge train_removed annotations
 	## (some datasets might already have this..)
 	print("Loaded data.. now preprocessing..")
-	for edge in topology_graph.edges():
-		if ( topology_graph.node[edge[0]]['val'] or  topology_graph.node[edge[1]]['val'] or
-			 topology_graph.node[edge[0]]['test'] or  topology_graph.node[edge[1]]['test']):
-			 topology_graph[edge[0]][edge[1]]['train_removed'] = True
+	for edge in graph.edges():
+		if ( graph.node[edge[0]]['val'] or  graph.node[edge[1]]['val'] or
+			 graph.node[edge[0]]['test'] or  graph.node[edge[1]]['test']):
+			 graph[edge[0]][edge[1]]['train_removed'] = True
 		else:
-			 topology_graph[edge[0]][edge[1]]['train_removed'] = False
+			 graph[edge[0]][edge[1]]['train_removed'] = False
 
-	if normalize and not features is None:
+	if scale and not features is None:
 		from sklearn.preprocessing import StandardScaler
 		train_ids = np.array([id_map[n] 
-							  for n in  topology_graph.nodes() 
-							  if not topology_graph.node[n]['val'] 
-							  and not topology_graph.node[n]['test']])
+							  for n in graph.nodes() 
+							  if not graph.node[n]['val'] 
+							  and not graph.node[n]['test']])
+		# val_ids = np.array([id_map[n] 
+		# 					  for n in  graph.nodes() 
+		# 					  if graph.node[n]['val'] 
+		# 					  and not graph.node[n]['test']])
+		# test_ids = np.array([id_map[n] 
+		# 					  for n in  graph.nodes() 
+		# 					  if not graph.node[n]['val'] 
+		# 					  and graph.node[n]['test']])
 		train_feats = features[train_ids]
 		scaler = StandardScaler()
 		scaler.fit(train_feats)
 		features = scaler.transform(features)
 		
-	labels = np.array([class_map[n] for n in topology_graph.nodes()])
-	nx.set_edge_attributes(G=topology_graph, name="weight", values=1.)
-	
+	labels = np.array([class_map[n] for n in graph.nodes()])
+	nx.set_edge_attributes(G=graph, name="weight", values=1.)
+
 	assert args.only_lcc
 	if args.only_lcc:
-		topology_graph = max(nx.connected_component_subgraphs(topology_graph), key=len)
-		features = features[topology_graph.nodes()]
-		labels = labels[topology_graph.nodes()]
-		topology_graph = nx.convert_node_labels_to_integers(topology_graph, label_attribute="original_name")
-		nx.set_edge_attributes(G=topology_graph, name="weight", values=1.)
+		graph = max(nx.connected_component_subgraphs(graph), key=len)
+		features = features[graph.nodes()]
+		labels = labels[graph.nodes()]
+		graph = nx.convert_node_labels_to_integers(graph, label_attribute="original_name")
+		nx.set_edge_attributes(G=graph, name="weight", values=1.)
 
-	return topology_graph, features, labels
+	return graph, features, labels
 
 def load_wordnet(args):
 
@@ -269,15 +271,15 @@ def load_wordnet(args):
     testing link prediciton / reconstruction / lexical entailment
     '''
 
-    topology_graph = nx.read_edgelist(os.path.join(args.data_directory, "wordnet/noun_closure.tsv", ))
-    topology_graph = nx.convert_node_labels_to_integers(topology_graph, label_attribute="original_name")
-    nx.set_edge_attributes(topology_graph, name="weight", values=1)
+    graph = nx.read_edgelist(os.path.join(args.data_directory, "wordnet/noun_closure.tsv", ))
+    graph = nx.convert_node_labels_to_integers(graph, label_attribute="original_name")
+    nx.set_edge_attributes(graph, name="weight", values=1)
 
     features = None
     labels = None
     label_info = None
     
-    return topology_graph, features, labels, label_info
+    return graph, features, labels, label_info
 
 def load_collaboration_network(args):
 	'''
@@ -285,12 +287,12 @@ def load_collaboration_network(args):
 	dataset_str = args.dataset
 	assert dataset_str in ["AstroPh", "CondMat", "GrQc", "HepPh"], "dataset string is not valid"
 
-	topology_graph = nx.read_edgelist(os.path.join(args.data_directory, "collaboration_networks/ca-{}.txt.gz".format(dataset_str)))
-	topology_graph = nx.convert_node_labels_to_integers(topology_graph, label_attribute="original_name")
-	nx.set_edge_attributes(topology_graph, name="weight", values=1)
+	graph = nx.read_edgelist(os.path.join(args.data_directory, "collaboration_networks/ca-{}.txt.gz".format(dataset_str)))
+	graph = nx.convert_node_labels_to_integers(graph, label_attribute="original_name")
+	nx.set_edge_attributes(graph, name="weight", values=1)
 
 	features = None
 	labels = None
 	label_info = None
 	
-	return topology_graph, features, labels, label_info
+	return graph, features, labels, label_info

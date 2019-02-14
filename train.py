@@ -67,4 +67,3 @@ def train(model, data, optimizer, opt, log, rank=1, queue=None):
                     '}'
                 )
         gc.collect()
-        # print (f"done epoch {epoch} loss: {loss.data.item()}")

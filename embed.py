@@ -140,6 +140,7 @@ if __name__ == '__main__':
 	print ("loaded edgelist: {}".format(training_edgelist))
 
 	th.set_default_tensor_type('torch.FloatTensor')
+	# th.manual_seed(opt.seed)
 	# th.set_default_tensor_type('torch.cuda.FloatTensor')
 
 	if opt.debug:

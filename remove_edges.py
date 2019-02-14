@@ -7,12 +7,12 @@ import networkx as nx
 
 import argparse
 
-from data_utils import load_g2g_datasets, load_collaboration_network
+from data_utils import load_g2g_datasets, load_collaboration_network, load_ppi
 
 def write_edgelist_to_file(edgelist, file):
 	with open(file, "w+") as f:
 		for u, v in edgelist:
-			f.write("{} {}\n".format(u,v))
+			f.write("{} {}\n".format(u, v))
 
 def split_edges(edges, non_edges, seed, val_split=0.05, test_split=0.1, neg_mul=1):
 	
@@ -82,25 +82,30 @@ def main():
 
 
 	if dataset in ["cora", "cora_ml", "pubmed", "citeseer"]:
-		topology_graph, features, labels, label_info = load_g2g_datasets(dataset, args)
+		load = load_g2g_datasets
 	elif dataset in ["AstroPh", "CondMat", "GrQc", "HepPh"]:
-		topology_graph, features, labels, label_info = load_collaboration_network(args)
+		load = load_collaboration_network
+	elif dataset == "ppi":
+		load = load_ppi
+	else:
+		raise Exception
+
+	graph, features, labels = load(dataset, args)
 
 	print("loaded dataset")
 
-
-	edges = list(topology_graph.edges())
-	non_edges = list(nx.non_edges(topology_graph))
+	edges = list(graph.edges()) + [(u, u) for u in graph.nodes()]
+	non_edges = list(nx.non_edges(graph))
 
 	write_edgelist_to_file(edges, complete_edgelist_fn)
 	write_edgelist_to_file(non_edges, complete_non_edgelist_fn)
 
 	train_edges, (val_edges, val_non_edges), (test_edges, test_non_edges) = split_edges(edges, non_edges, seed)
-	train_edges += [(u,u) for u in topology_graph.nodes()]
+	train_edges += [(u, u) for u in graph.nodes()] # ensure that every node appears at least once
 
 	print ("removed edges")
 
-	topology_graph.remove_edges_from(val_edges + test_edges)
+	graph.remove_edges_from(val_edges + test_edges)
 
 	write_edgelist_to_file(train_edges, training_edgelist_fn)
 	write_edgelist_to_file(val_edges, val_edgelist_fn)
