@@ -10,6 +10,7 @@ import numpy as np
 import timeit
 from torch.utils.data import DataLoader
 import gc
+import sys
 
 _lr_multiplier = 0.01
 
@@ -67,3 +68,5 @@ def train(model, data, optimizer, opt, log, rank=1, queue=None):
                     '}'
                 )
         gc.collect()
+        print (f"done epoch {epoch} loss: {loss.data.item()}")
+        sys.stdout.flush()
