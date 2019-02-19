@@ -304,24 +304,14 @@ def main():
 		test_edges = read_edgelist(test_edges_filename)
 		test_non_edges = read_edgelist(test_non_edges_filename)
 
-		# test_edge_dict = convert_edgelist_to_dict(test_edges)
-		# non_edge_dict = convert_edgelist_to_dict(non_edges)
-
 		(mean_rank_lp, map_lp, 
 		mean_roc_lp) = evaluate_rank_and_MAP(dists, 
-		test_edges, test_non_edges)
+		val_edges + test_edges, 
+		val_non_edges + test_non_edges)
 
 		test_results.update({"mean_rank_lp": mean_rank_lp, 
 			"map_lp": map_lp,
 			"mean_roc_lp": mean_roc_lp})
-
-		# (mean_rank_lp_fb, map_lp_fb, 
-		# mean_roc_lp_fb) = evaluate_rank_and_MAP_fb(dists, 
-		# test_edge_dict, non_edge_dict)
-
-		# test_results.update({"mean_rank_lp_fb": mean_rank_lp_fb, 
-		# 	"map_lp_fb": map_lp_fb,
-		# 	"mean_roc_lp_fb": mean_roc_lp_fb})
 
 	else:
 		complete_edgelist_fn, complete_non_edgelist_fn = filenames
