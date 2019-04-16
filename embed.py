@@ -15,11 +15,11 @@ from torch.autograd import Variable
 from collections import defaultdict as ddict
 import torch.multiprocessing as mp
 import model, train, rsgd
-from data import slurp, parse_space
+from data import slurp, parse_space, parse_tsv
 from rsgd import RiemannianSGD
-# from sklearn.metrics import average_precision_score
 import gc
 import sys
+import pandas as pd
 
 
 # def ranking(types, model, distfn):
@@ -103,8 +103,13 @@ def parse_filenames(opts):
 	dataset = opts.dset
 	seed = opts.seed
 	experiment = opts.exp
-	training_edgelist = os.path.join("training_edgelists", dataset, "seed={}".format(seed), experiment, "training_edges.edgelist")
-	embedding_dir = os.path.join("embeddings", dataset, "dim={}".format(opts.dim), "seed={}".format(seed), experiment)
+	if expeirment == "nc_experiment":
+		training_edgelist = os.path.join("../heat/datasets/", dataset, "edgelist.tsv")
+	else:
+		training_edgelist = os.path.join("../heat/edgelists/", dataset, 
+			"seed={:03d}".format(seed), "training_edges", "edgelist.tsv")
+		
+	embedding_dir = os.path.join("embeddings", dataset, "dim={:02d}".format(opts.dim), "seed={:03d}".format(seed), experiment)
 	if not os.path.exists(embedding_dir):
 		os.makedirs(embedding_dir)
 	embedding_file = os.path.join(embedding_dir, "embedding.csv")
@@ -129,7 +134,8 @@ if __name__ == '__main__':
 	parser.add_argument('-debug', help='Print debug output', action='store_true', default=False)
 	opt = parser.parse_args()
 
-	assert opt.exp in ["eval_lp", "eval_class_pred"]
+	assert opt.dset = ["cora_ml", "citeseer", "ppi"]
+	assert opt.exp in ["lp_experiment", "nc_experiment"]
 
 	training_edgelist, embedding_file = parse_filenames(opt)
 
@@ -149,7 +155,7 @@ if __name__ == '__main__':
 		log_level = logging.INFO
 	log = logging.getLogger('poincare-nips17')
 	logging.basicConfig(level=log_level, format='%(message)s', stream=sys.stdout)
-	idx, objects = slurp(training_edgelist, symmetrize=True, fparse=parse_space)
+	idx, objects = slurp(training_edgelist, symmetrize=True, fparse=parse_tsv)
 
 	# create adjacency list for evaluation
 	adjacency = ddict(set)
@@ -217,4 +223,5 @@ if __name__ == '__main__':
 		ctrl.join()
 
 	print("training complete -- saving embedding to {}".format(embedding_file))
-	np.savetxt(X=model.lt.weight.detach().numpy(), fname=embedding_file, delimiter=",")
+	embedding_df = pd.DataFrame(model.lt.weight.detach().numpy())
+	embedding_df.to_csv(embedding_file, sep=",")

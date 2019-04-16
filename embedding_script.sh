@@ -10,7 +10,7 @@
 
 DATA_DIR=/rds/projects/2018/hesz01/data
 
-ARR=(-dim={5,10,25,50}" "-dset={cora_ml,citeseer,ppi}" "-seed={0..29}" "-exp={eval_class_pred,eval_lp})
+ARR=(-dim={5,10,25,50}" "-dset={cora_ml,citeseer,ppi}" "-seed={0..29}" "-exp={lp_experiment,nc_experiment})
 
 module purge; module load bluebear
 module load bear-apps/2018a

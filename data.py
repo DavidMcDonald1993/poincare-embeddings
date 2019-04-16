@@ -56,13 +56,11 @@ def slurp(fin, fparse=parse_tsv, symmetrize=False):
 
     subs = []
     for i, j, w in iter_line(fin, fparse, length=2):
-        # if i == j:
-        #     continue
         # subs.append((enames[i], enames[j], w))
-        # print (i, j, enames[i], enames[j], w)
         subs.append((i, j, w))
         if symmetrize:
-            subs.append((enames[j], enames[i], w))
+            # subs.append((enames[j], enames[i], w))
+            subs.appen((j, i, w))
     idx = th.from_numpy(np.array(subs, dtype=np.int))
 
     # freeze defaultdicts after training data and convert to arrays
