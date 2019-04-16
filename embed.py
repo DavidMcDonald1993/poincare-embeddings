@@ -103,7 +103,7 @@ def parse_filenames(opts):
 	dataset = opts.dset
 	seed = opts.seed
 	experiment = opts.exp
-	if expeirment == "nc_experiment":
+	if experiment == "nc_experiment":
 		training_edgelist = os.path.join("../heat/datasets/", dataset, "edgelist.tsv")
 	else:
 		training_edgelist = os.path.join("../heat/edgelists/", dataset, 
