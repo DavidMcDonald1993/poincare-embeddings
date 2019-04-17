@@ -17,7 +17,7 @@ def parse_seperator(line, length, sep='\t'):
     if len(d) == length:
         w = 1
     elif len(d) == length + 1:
-        w = int(d[-1])
+        w = int(float(d[-1]))
         d = d[:-1]
     else:
         raise RuntimeError(f'Malformed input ({line.strip()})')
@@ -51,16 +51,25 @@ def intmap_to_list(d):
 
 
 def slurp(fin, fparse=parse_tsv, symmetrize=False):
-    ecount = count()
-    enames = ddict(ecount.__next__)
+
+    class IdentityDict(ddict):
+        def missing(self, key):
+            self.update({key: int(key)})
+            return self.get(key)
+        
+        __missing__ = missing
+
+    # ecount = count()
+    # enames = ddict(ecount.__next__)
+    enames = IdentityDict()
 
     subs = []
     for i, j, w in iter_line(fin, fparse, length=2):
-        # subs.append((enames[i], enames[j], w))
-        subs.append((i, j, w))
+        subs.append((enames[i], enames[j], w))
+        # subs.append((i, j, w))
         if symmetrize:
-            # subs.append((enames[j], enames[i], w))
-            subs.appen((j, i, w))
+            subs.append((enames[j], enames[i], w))
+            # subs.append((j, i, w))
     idx = th.from_numpy(np.array(subs, dtype=np.int))
 
     # freeze defaultdicts after training data and convert to arrays
