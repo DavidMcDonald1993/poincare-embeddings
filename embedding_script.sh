@@ -3,9 +3,9 @@
 #SBATCH --job-name=embedding
 #SBATCH --output=embedding_%A_%a.out
 #SBATCH --error=embedding_%A_%a.err
-#SBATCH --time=1-00:00:00
+#SBATCH --time=3-00:00:00
 #SBATCH --ntasks=1
-#SBATCH --mem=10G
+#SBATCH --mem=32G
 #SBATCH --array 0-719
 
 DATA_DIR=/rds/projects/2018/hesz01/data

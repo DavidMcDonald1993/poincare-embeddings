@@ -139,6 +139,10 @@ if __name__ == '__main__':
 
 	training_edgelist, embedding_file = parse_filenames(opt)
 
+	if os.path.exists(embedding_file):
+		print ("{} already exists-- terminating")
+		return
+
 	print ("loaded edgelist: {}".format(training_edgelist))
 
 	th.set_default_tensor_type('torch.FloatTensor')
