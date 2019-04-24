@@ -141,7 +141,7 @@ if __name__ == '__main__':
 
 	if os.path.exists(embedding_file):
 		print ("{} already exists-- terminating")
-		return
+		raise SystemExit
 
 	print ("loaded edgelist: {}".format(training_edgelist))
 
