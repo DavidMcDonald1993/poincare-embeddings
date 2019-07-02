@@ -134,7 +134,7 @@ if __name__ == '__main__':
 	parser.add_argument('-debug', help='Print debug output', action='store_true', default=False)
 	opt = parser.parse_args()
 
-	assert opt.dset in ["cora_ml", "citeseer", "ppi"]
+	assert opt.dset in ["cora_ml", "citeseer", "ppi", "pubmed", "mit"]
 	assert opt.exp in ["lp_experiment", "nc_experiment"]
 
 	training_edgelist, embedding_file = parse_filenames(opt)
