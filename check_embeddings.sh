@@ -8,7 +8,8 @@ do
         do
             for dim in 5 10 25 50
             do
-                embedding_f=$(printf "embeddings/${dataset}/dim=%02d/seed=%03d/${exp}/embedding.csv" ${dim} ${seed})
+                embedding_f=$(printf \
+                "embeddings/${dataset}/dim=%02d/seed=%03d/${exp}/embedding.csv" ${dim} ${seed})
                 if [ -f ${embedding_f}.gz ]
                 then
                     continue
