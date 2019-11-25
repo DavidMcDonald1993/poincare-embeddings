@@ -112,7 +112,7 @@ def parse_filenames(opts):
 	embedding_dir = os.path.join("embeddings", dataset, "dim={:02d}".format(opts.dim), "seed={:03d}".format(seed), experiment)
 	if not os.path.exists(embedding_dir):
 		os.makedirs(embedding_dir)
-	embedding_file = os.path.join(embedding_dir, "embedding.csv")
+	embedding_file = os.path.join(embedding_dir, "embedding.csv.gz")
 	return training_edgelist, embedding_file
 
 if __name__ == '__main__':
@@ -224,4 +224,4 @@ if __name__ == '__main__':
 
 	print("training complete -- saving embedding to {}".format(embedding_file))
 	embedding_df = pd.DataFrame(model.lt.weight.detach().numpy())
-	embedding_df.to_csv(embedding_file, sep=",")
+	embedding_df.to_csv(embedding_file, compression="gzip")
