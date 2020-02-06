@@ -16,7 +16,8 @@ def main():
         datasets, dims, seeds, exps
     ):
         embedding_directory = os.path.join(
-            "embeddings", dataset, dim, seed, exp
+            "embeddings", dataset, "dim={:02d}".format(dim), 
+            "seed={:03d}".format(seed), exp
         )
 
         filename = os.path.join(embedding_directory, "embedding.csv.gz")
