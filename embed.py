@@ -109,7 +109,9 @@ def parse_filenames(opts):
 		training_edgelist = os.path.join("../heat/edgelists/", dataset, 
 			"seed={:03d}".format(seed), "training_edges", "edgelist.tsv")
 		
-	embedding_dir = os.path.join("embeddings", dataset, "dim={:02d}".format(opts.dim), "seed={:03d}".format(seed), experiment)
+	embedding_dir = os.path.join("embeddings", 
+		dataset, "dim={:02d}".format(opts.dim), 
+		"seed={:03d}".format(seed), experiment)
 	if not os.path.exists(embedding_dir):
 		os.makedirs(embedding_dir)
 	embedding_file = os.path.join(embedding_dir, "embedding.csv.gz")
