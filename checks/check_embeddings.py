@@ -29,8 +29,5 @@ def main():
         except IOError:
             print (filename, "does not exist")
 
-
-
-
 if __name__ == "__main__":
     main()

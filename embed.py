@@ -106,6 +106,7 @@ def parse_filenames(opts):
 	if experiment == "nc_experiment":
 		training_edgelist = os.path.join("../heat/datasets/", dataset, "edgelist.tsv")
 	else:
+		assert experiment == "lp_experiment"
 		training_edgelist = os.path.join("../heat/edgelists/", dataset, 
 			"seed={:03d}".format(seed), "training_edges", "edgelist.tsv")
 		
@@ -140,6 +141,9 @@ if __name__ == '__main__':
 	assert opt.exp in ["lp_experiment", "nc_experiment"]
 
 	training_edgelist, embedding_file = parse_filenames(opt)
+
+	print ("reading edgelist", training_edgelist)
+	print ("outputting to embedding to", embedding_file)
 
 	if os.path.exists(embedding_file):
 		print ("{} already exists-- terminating".format(embedding_file))
