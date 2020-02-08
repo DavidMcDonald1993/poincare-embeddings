@@ -8,7 +8,7 @@
 #SBATCH --mem=20G
 #SBATCH --array 0-1199
 
-ARR=(-dim={50,5,10,25}" "-dset={pubmed,cora_ml,citeseer,ppi,mit}" "-seed={0..29}" "-exp={lp_experiment,nc_experiment})
+ARR=(-dim={5,10,25,50}" "-dset={cora_ml,citeseer,ppi,mit,pubmed}" "-seed={0..29}" "-exp={lp_experiment,nc_experiment})
 
 module purge; module load bluebear
 module load bear-apps/2018a
