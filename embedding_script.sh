@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name=embedding
-#SBATCH --output=embedding_%A_%a.out
-#SBATCH --error=embedding_%A_%a.err
+#SBATCH --job-name=NK
+#SBATCH --output=NK_%A_%a.out
+#SBATCH --error=NK_%A_%a.err
 #SBATCH --time=10-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --mem=20G
