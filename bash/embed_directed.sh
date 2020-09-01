@@ -43,9 +43,9 @@ embedding_filename=${embedding_directory}/embedding.csv.gz
 if [ ! -f ${embedding_filename} ]
 then
 
-    # module purge; module load bluebear
-    # module load bear-apps/2018a
-    # module load PyTorch/0.4.0-foss-2018a-Python-3.6.3-CUDA-9.0.176
+    module purge; module load bluebear
+    module load bear-apps/2018a
+    module load PyTorch/0.4.0-foss-2018a-Python-3.6.3-CUDA-9.0.176
 
     echo making embedding at $embedding_filename
 
