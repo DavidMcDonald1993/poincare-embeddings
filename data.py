@@ -11,6 +11,7 @@ from collections import defaultdict as ddict
 import numpy as np
 import torch as th
 
+import gzip
 
 def parse_seperator(line, length, sep='\t'):
     d = line.strip().split(sep)
@@ -33,13 +34,20 @@ def parse_space(line, length=2):
 
 
 def iter_line(fname, fparse, length=2, comment='#'):
-    with open(fname, 'r') as fin:
-        for line in fin:
-            if line[0] == comment:
-                continue
-            tpl = fparse(line, length=length)
-            if tpl is not None:
-                yield tpl
+    if fname.endswith(".gz"):
+        # with gzip.open(fname, "rt") as fin:
+        fin = gzip.open(fname, "rt")
+    else:
+        fin = open(fname, "r")
+    # with open(fname, 'r') as fin:
+
+    for line in fin:
+        if line[0] == comment:
+            continue
+        tpl = fparse(line, length=length)
+        if tpl is not None:
+            yield tpl
+    fin.close()
 
 
 def intmap_to_list(d):

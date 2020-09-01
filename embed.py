@@ -21,7 +21,6 @@ import gc
 import sys
 import pandas as pd
 
-
 # def ranking(types, model, distfn):
 # 	lt = th.from_numpy(model.embedding())
 # 	embedding = Variable(lt, volatile=True)
@@ -99,30 +98,34 @@ def control(queue, log, types, data, fout, distfn, nepochs, processes):
 			)
 			break
 
-def parse_filenames(opts):
-	dataset = opts.dset
-	seed = opts.seed
-	experiment = opts.exp
-	if experiment == "nc_experiment":
-		training_edgelist = os.path.join("../heat/datasets/", dataset, "edgelist.tsv")
-	else:
-		assert experiment == "lp_experiment"
-		training_edgelist = os.path.join("../heat/edgelists/", dataset, 
-			"seed={:03d}".format(seed), "training_edges", "edgelist.tsv")
+# def parse_filenames(opts):
+# 	dataset = opts.dset
+# 	seed = opts.seed
+# 	experiment = opts.exp
+# 	if experiment == "nc_experiment":
+# 		training_edgelist = os.path.join("../heat/datasets/", dataset, "edgelist.tsv")
+# 	else:
+# 		assert experiment == "lp_experiment"
+# 		training_edgelist = os.path.join("../heat/edgelists/", dataset, 
+# 			"seed={:03d}".format(seed), "training_edges", "edgelist.tsv")
 		
-	embedding_dir = os.path.join("embeddings", 
-		dataset, "dim={:02d}".format(opts.dim), 
-		"seed={:03d}".format(seed), experiment)
-	if not os.path.exists(embedding_dir):
-		os.makedirs(embedding_dir)
-	embedding_file = os.path.join(embedding_dir, "embedding.csv.gz")
-	return training_edgelist, embedding_file
+# 	embedding_dir = os.path.join("embeddings", 
+# 		dataset, "dim={:02d}".format(opts.dim), 
+# 		"seed={:03d}".format(seed), experiment)
+# 	if not os.path.exists(embedding_dir):
+# 		os.makedirs(embedding_dir)
+# 	embedding_file = os.path.join(embedding_dir, "embedding.csv.gz")
+# 	return training_edgelist, embedding_file
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Train Poincare Embeddings')
 	parser.add_argument('-dim', help='Embedding dimension', type=int)
-	parser.add_argument('-dset', help='Dataset to embed', type=str, default="cora_ml")
-	parser.add_argument('-exp', help='Experiment to perform', type=str, )
+	parser.add_argument('-dset', help='Dataset to embed', type=str, )
+
+	# parser.add_argument('-exp', help='Experiment to perform', type=str, )
+	parser.add_argument('-edgelist', help='Edgelist of network', type=str, )
+	parser.add_argument('-embedding_dir', help='Directory to save embedding', type=str, )
+
 	parser.add_argument('-fout', help='Filename where to store model', type=str)
 	parser.add_argument('-distfn', help='Distance function', type=str)
 	parser.add_argument('-lr', help='Learning rate', type=float)
@@ -135,21 +138,26 @@ if __name__ == '__main__':
 	parser.add_argument('-eval_each', help='Run evaluation each n-th epoch', type=int, default=10)
 	parser.add_argument('-burnin', help='Duration of burn in', type=int, default=20)
 	parser.add_argument('-debug', help='Print debug output', action='store_true', default=False)
+
 	opt = parser.parse_args()
 
-	assert opt.dset in ["cora_ml", "citeseer", "ppi", "pubmed", "mit"]
-	assert opt.exp in ["lp_experiment", "nc_experiment"]
+	# assert opt.dset in ["cora_ml", "citeseer", "ppi", "pubmed", "mit"]
+	# assert opt.exp in ["lp_experiment", "nc_experiment"]
 
-	training_edgelist, embedding_file = parse_filenames(opt)
+	training_edgelist = opt.edgelist
+	# training_edgelist, embedding_file = parse_filenames(opt)
+	embedding_dir = opt.embedding_dir 
+	os.makedirs(embedding_dir, exist_ok=True)
+	embedding_file = os.path.join(embedding_dir, "embedding.csv.gz")
 
 	print ("reading edgelist", training_edgelist)
-	print ("outputting to embedding to", embedding_file)
+	print ("outputting to", embedding_file)
 
-	if os.path.exists(embedding_file):
-		print ("{} already exists-- terminating".format(embedding_file))
-		raise SystemExit
+	# if os.path.exists(embedding_file):
+		# print ("{} already exists-- terminating".format(embedding_file))
+		# raise SystemExit
 
-	print ("loaded edgelist: {}".format(training_edgelist))
+	print ("reading edgelist: {}".format(training_edgelist))
 
 	th.set_default_tensor_type('torch.FloatTensor')
 	# th.manual_seed(opt.seed)
